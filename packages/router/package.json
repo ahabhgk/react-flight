@@ -1,0 +1,16 @@
+{
+  "name": "@react-flight/router",
+  "version": "0.0.1",
+  "description": "",
+  "keywords": [],
+	"author": "ahabhgk <ahabhgk@gmail.com> (https://github.com/ahabhgk)",
+  "license": "MIT",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "react": "18.3.0-canary-a389046a5-20230512",
+    "react-dom": "18.3.0-canary-a389046a5-20230512"
+  }
+}

@@ -1,0 +1,35 @@
+{
+	"name": "example-fixture-flight",
+	"private": true,
+	"description": "",
+	"main": "index.js",
+	"keywords": [],
+	"author": "ahabhgk <ahabhgk@gmail.com> (https://github.com/ahabhgk)",
+	"license": "MIT",
+	"scripts": {
+		"build": "webpack",
+		"start": "concurrently \"pnpm start:data\" \"pnpm start:ssr\"",
+		"start:ssr": "node ./ssr-server.js",
+		"start:data": "node ./data-server.js"
+	},
+	"devDependencies": {
+		"@babel/core": "^7.21.4",
+		"@babel/preset-react": "^7.18.6",
+		"@react-flight/webpack-plugin": "workspace:*",
+		"babel-loader": "^9.1.2",
+		"concurrently": "^8.0.1",
+		"webpack": "^5.82.1",
+		"webpack-cli": "^5.1.1",
+		"webpack-dev-server": "^4.15.0"
+	},
+	"dependencies": {
+		"body-parser": "^1.20.2",
+		"busboy": "^1.6.0",
+		"compression": "^1.7.4",
+		"express": "^4.18.2",
+		"react": "0.0.0-experimental-a389046a5-20230512",
+		"react-dom": "0.0.0-experimental-a389046a5-20230512",
+		"react-server-dom-webpack": "0.0.0-experimental-a389046a5-20230512",
+		"server-only": "^0.0.1"
+	}
+}

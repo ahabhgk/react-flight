@@ -1,0 +1,21 @@
+{
+  "name": "@react-flight/webpack-plugin",
+  "version": "0.0.1",
+  "description": "",
+  "keywords": [],
+	"author": "ahabhgk <ahabhgk@gmail.com> (https://github.com/ahabhgk)",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.js",
+    "./runtime/server": "./src/runtime/server.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "react": "0.0.0-experimental-a389046a5-20230512",
+    "react-dom": "0.0.0-experimental-a389046a5-20230512",
+    "react-server-dom-webpack": "0.0.0-experimental-a389046a5-20230512",
+    "webpack": "^5.82.1"
+  }
+}
