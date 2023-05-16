@@ -1,4 +1,4 @@
-const { state, SERVER_LAYER, ACTION_LAYER, NONE_LAYER } = require("./index");
+const { state, SERVER_LAYER, CLIENT_LAYER, ACTION_LAYER, NONE_LAYER } = require("./index");
 
 function hasDirective(source, directive) {
 	const trimed = source.trimStart();
@@ -27,18 +27,27 @@ export default clientReference;
 
 	if (this.resourceQuery === "?__flight") return source;
 	if (hasDirective(source, "use server")) {
-		if (state.currentLayer === ACTION_LAYER || state.currentLayer === NONE_LAYER) {
+		if (state.currentLayer === NONE_LAYER) {
 			const { callServer } = this.getOptions();
-			state.serverActionFromClientResources.push(this.resource);
 			return `
-import { createServerReference } from 'react-server-dom-webpack/client.browser';
+import { createServerReference } from 'react-server-dom-webpack/client';
 import { ${callServer.exportName} } from "${callServer.path}";
 
 const action = createServerReference(String.raw\`${this.resourcePath}\`, ${callServer.exportName});
 export default action;
 `;
-		} else if (state.currentLayer === SERVER_LAYER) {
-			state.serverActionFromServerResources.push(this.resource);
+		} else if (state.currentLayer === CLIENT_LAYER) {
+			state.serverActionFromClientResources.push(this.resource);
+			return `
+import { createServerReference } from 'react-server-dom-webpack/client';
+
+const action = createServerReference(String.raw\`${this.resourcePath}\`);
+export default action;
+`;
+		} else if (state.currentLayer === SERVER_LAYER || state.currentLayer === ACTION_LAYER) {
+			if (state.currentLayer === SERVER_LAYER) {
+				state.serverActionFromServerResources.push(this.resource);
+			}
 			return `
 import { createServerAction } from "${require.resolve("./runtime/server.js")}";
 import * as actions from "${this.resourcePath}?__flight";\n

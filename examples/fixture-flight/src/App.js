@@ -7,6 +7,7 @@ import Counter from "./Counter.js";
 
 import ShowMore from "./ShowMore.js";
 import LikeButton from "./LikeButton.js";
+import DislikeButton from "./DislikeButton.js";
 import Form from "./Form.js";
 
 import like from "./like.js";
@@ -39,6 +40,7 @@ export default async function App() {
 					{/* <Form action={greet} /> */}
 					<div>
 						<LikeButton action={like}>Like</LikeButton>
+						<DislikeButton>Dislike</DislikeButton>
 					</div>
 				</Container>
 			</body>

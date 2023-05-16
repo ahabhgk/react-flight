@@ -3,6 +3,7 @@ const {
 	ReactFlightServerWebpackPlugin,
 	ReactFlightClientWebpackPlugin,
 	loader: flightLoader,
+	reactServerRules,
 } = require("@react-flight/webpack-plugin");
 
 const jsRule = {
@@ -44,21 +45,13 @@ module.exports = [
 		target: "node",
 		devtool: false,
 		module: {
-			rules: [
-				jsRule,
-				{
-					test: /\.jsx?$/,
-					issuerLayer: { or: ["server", "action"] },
-					resolve: {
-						conditionNames: ["react-server", "..."],
-					},
-				},
-			],
+			rules: [jsRule, ...reactServerRules({ test: /\.jsx?$/ })],
 		},
 		plugins: [new ReactFlightServerWebpackPlugin()],
 		externals: {
 			react: "node-commonjs react",
 			"react-dom": "node-commonjs react-dom",
+			"react-dom/server": "node-commonjs react-dom/server",
 		},
 		experiments: {
 			layers: true,

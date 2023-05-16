@@ -42,5 +42,3 @@ function Shell({ data }) {
 }
 
 ReactDOM.hydrateRoot(document, <Shell data={data} />);
-// const root = ReactDOM.createRoot(document.getElementById('root'));
-// root.render(<Shell data={data} />);

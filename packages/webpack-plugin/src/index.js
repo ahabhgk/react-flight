@@ -292,9 +292,35 @@ class ReactFlightClientWebpackPlugin {
 	}
 }
 
+function reactServerRules(options) {
+	const serverLayer = options.serverLayer ?? "server";
+	const actionLayer = options.actionLayer ?? "action";
+	const conditions = { ...options };
+	delete conditions.serverLayer;
+	delete conditions.actionLayer;
+
+	return [
+		{
+			...conditions,
+			issuerLayer: { or: [serverLayer, actionLayer] },
+			resolve: {
+				conditionNames: ["react-server", "..."],
+			},
+		},
+		{
+			issuerLayer: [actionLayer],
+			layer: serverLayer,
+		},
+	];
+}
+
+/* public api */
 module.exports.ReactFlightServerWebpackPlugin = ReactFlightServerWebpackPlugin;
 module.exports.ReactFlightClientWebpackPlugin = ReactFlightClientWebpackPlugin;
 module.exports.loader = require.resolve("./flight-loader");
+module.exports.reactServerRules = reactServerRules;
+
+/* private api */
 module.exports.state = state;
 module.exports.SERVER_LAYER = SERVER_LAYER;
 module.exports.CLIENT_LAYER = CLIENT_LAYER;
