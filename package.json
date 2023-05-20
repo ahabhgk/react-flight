@@ -1,18 +1,23 @@
 {
   "name": "@react-flight/monorepo",
+  "private": true,
   "version": "0.0.1",
   "description": "",
   "keywords": [],
   "author": "ahabhgk <ahabhgk@gmail.com> (https://github.com/ahabhgk)",
   "license": "MIT",
   "scripts": {
-		"fmt": "prettier --write {packages,examples}/**/*.js",
-    "prepare": "husky install"
+    "fmt": "prettier --write {packages,examples}/**/*.js",
+    "prepare": "husky install",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "changeset publish"
   },
-	"lint-staged": {
-		"**/*": "prettier --write --ignore-unknown"
-	},
+  "lint-staged": {
+    "**/*": "prettier --write --ignore-unknown"
+  },
   "devDependencies": {
+    "@changesets/cli": "^2.26.1",
     "husky": "^8.0.3",
     "lint-staged": "^13.2.2",
     "prettier": "^2.8.8"
