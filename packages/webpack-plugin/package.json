@@ -1,9 +1,9 @@
 {
   "name": "@react-flight/webpack-plugin",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "",
   "keywords": [],
-	"author": "ahabhgk <ahabhgk@gmail.com> (https://github.com/ahabhgk)",
+  "author": "ahabhgk <ahabhgk@gmail.com> (https://github.com/ahabhgk)",
   "license": "MIT",
   "exports": {
     ".": "./src/index.js",
