@@ -19,7 +19,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "18.x"
-          cache: "pnpm"
+
+      - run: corepack enable
+      - run: pnpm --version
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile

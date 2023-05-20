@@ -16,6 +16,11 @@
   "lint-staged": {
     "**/*": "prettier --write --ignore-unknown"
   },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": "^8.0.0"
+  },
+  "packageManager": "pnpm@8.5.1",
   "devDependencies": {
     "@changesets/cli": "^2.26.1",
     "husky": "^8.0.3",
