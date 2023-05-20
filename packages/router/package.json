@@ -1,9 +1,9 @@
 {
   "name": "@react-flight/router",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "",
   "keywords": [],
-	"author": "ahabhgk <ahabhgk@gmail.com> (https://github.com/ahabhgk)",
+  "author": "ahabhgk <ahabhgk@gmail.com> (https://github.com/ahabhgk)",
   "license": "MIT",
   "main": "src/index.js",
   "scripts": {
