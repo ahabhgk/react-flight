@@ -1,0 +1,22 @@
+{
+  "name": "@react-flight/babel-plugin",
+  "version": "0.0.1",
+  "description": "",
+  "keywords": [],
+  "author": "ahabhgk <ahabhgk@gmail.com> (https://github.com/ahabhgk)",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.21.4",
+    "@babel/types": "^7.22.4",
+    "@types/babel__core": "^7.20.1",
+    "@types/node": "^20.2.5",
+    "react": "18.3.0-canary-a389046a5-20230512",
+    "react-dom": "18.3.0-canary-a389046a5-20230512",
+    "typescript": "^5.0.4"
+  }
+}
