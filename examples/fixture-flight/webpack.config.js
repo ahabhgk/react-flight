@@ -5,17 +5,12 @@ const {
 	loader: flightLoader,
 	reactServerRules,
 } = require("@react-flight/webpack-plugin");
+const { default: reactFlightBabelPlugin } = require("@react-flight/babel-plugin");
 
 const jsRule = {
 	test: /\.jsx?$/,
 	exclude: /node_modules/,
 	use: [
-		{
-			loader: "babel-loader",
-			options: {
-				presets: ["@babel/preset-react"],
-			},
-		},
 		{
 			loader: flightLoader,
 			options: {
@@ -23,6 +18,13 @@ const jsRule = {
 					exportName: "callServer",
 					path: path.resolve(__dirname, "./src/client-entry.js"),
 				},
+			},
+		},
+		{
+			loader: "babel-loader",
+			options: {
+				presets: ["@babel/preset-react"],
+				plugins: [reactFlightBabelPlugin],
 			},
 		},
 	],

@@ -170,7 +170,7 @@ const proxyHandlers = {
 	},
 };
 
-export function createClientModule(resourcePath) {
+export function createClientReference(resourcePath) {
 	const clientReference = Object.defineProperties(
 		{},
 		{

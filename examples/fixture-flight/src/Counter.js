@@ -4,7 +4,7 @@ import * as React from "react";
 
 import Container from "./Container.js";
 
-export default function Counter() {
+export function Counter() {
 	const [count, setCount] = React.useState(0);
 	return (
 		<Container>

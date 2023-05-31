@@ -1,32 +1,43 @@
 const { state, SERVER_LAYER, CLIENT_LAYER, ACTION_LAYER, NONE_LAYER } = require("./index");
 
-function hasDirective(source, directive) {
-	const trimed = source.trimStart();
-	return (
-		trimed.startsWith(`"${directive}"\n`) ||
-		trimed.startsWith(`"${directive}";\n`) ||
-		trimed.startsWith(`'${directive}'\n`) ||
-		trimed.startsWith(`'${directive}';\n`)
-	);
-}
+const INTERNAL_COMMENT_REGEX = /\/\*@react-flight\/internal:(.*)\|(.*)\*\//;
 
 module.exports = function flightLoader(source) {
 	// TODO: use AST to find directive
 	// TODO: use AST to create reference for non-default export
 
-	if (state.currentLayer === SERVER_LAYER && hasDirective(source, "use client")) {
+	const matched = source.match(INTERNAL_COMMENT_REGEX);
+	const directive = matched[1];
+	const exportNames = matched[2].split(",");
+
+	if (state.currentLayer === SERVER_LAYER && directive === "client") {
 		state.clientModuleReferences.set(this.resource, {});
-		return `
-import { createClientModule } from "${require.resolve("./runtime/server.js")}";
+		let count = 0;
+		let newSource = `
+import { createClientReference } from "${require.resolve("./runtime/server.js")}";
+const clientReference = createClientReference(String.raw\`${this.resourcePath}\`);
 
-const clientReference = createClientModule(String.raw\`${this.resourcePath}\`);
-
-export default clientReference;
+const { __esModule, $$typeof } = clientReference;
+const __default__ = clientReference.default;
 `;
+		for (const exportName of exportNames) {
+			if (exportName === "default") {
+				newSource += `
+export { __esModule, $$typeof };
+export default __default__;
+`;
+			} else {
+				newSource += `
+const e${count} = clientReference["${exportName}"];
+export { e${count++} as ${exportName} };
+`;
+			}
+		}
+		return newSource;
 	}
 
 	if (this.resourceQuery === "?__flight") return source;
-	if (hasDirective(source, "use server")) {
+	if (directive === "server") {
 		if (state.currentLayer === NONE_LAYER) {
 			const { callServer } = this.getOptions();
 			return `

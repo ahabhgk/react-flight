@@ -1,0 +1,19 @@
+{
+  "name": "@react-flight/babel-plugin",
+  "version": "0.0.1",
+  "description": "",
+  "keywords": [],
+  "author": "ahabhgk <ahabhgk@gmail.com> (https://github.com/ahabhgk)",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.21.4",
+    "@babel/types": "^7.22.4",
+    "@types/babel__core": "^7.20.1",
+    "typescript": "^5.0.4"
+  }
+}
