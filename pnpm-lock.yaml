@@ -83,15 +83,6 @@ importers:
       '@types/babel__core':
         specifier: ^7.20.1
         version: 7.20.1
-      '@types/node':
-        specifier: ^20.2.5
-        version: 20.2.5
-      react:
-        specifier: 18.3.0-canary-a389046a5-20230512
-        version: 18.3.0-canary-a389046a5-20230512
-      react-dom:
-        specifier: 18.3.0-canary-a389046a5-20230512
-        version: 18.3.0-canary-a389046a5-20230512(react@18.3.0-canary-a389046a5-20230512)
       typescript:
         specifier: ^5.0.4
         version: 5.0.4
