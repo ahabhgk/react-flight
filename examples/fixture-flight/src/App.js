@@ -2,8 +2,7 @@ import * as React from "react";
 
 import Container from "./Container.js";
 
-import Counter from "./Counter.js";
-// import {Counter as Counter2} from './Counter2.js';
+import { Counter } from "./Counter.js";
 
 import ShowMore from "./ShowMore.js";
 import LikeButton from "./LikeButton.js";
@@ -28,7 +27,6 @@ export default async function App() {
 				<Container>
 					<h1>{getServerState()}</h1>
 					<Counter />
-					{/* <Counter2 /> */}
 					<ul>
 						{todos.map((todo) => (
 							<li key={todo.id}>{todo.text}</li>

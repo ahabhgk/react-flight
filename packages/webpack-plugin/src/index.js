@@ -246,19 +246,51 @@ class ReactFlightClientWebpackPlugin {
 							const resourcePath = module.resource;
 
 							if (resourcePath !== undefined) {
+								const reference = this.clientModuleReferences.get(module.resource);
+								const ssrExports = {};
+
 								clientManifest[resourcePath] = {
 									id,
+									name: "*",
 									chunks: chunkIds,
+								};
+								ssrExports["*"] = {
+									id: reference.ssrId,
+									name: "*",
+									chunks: [],
+								};
+
+								clientManifest[resourcePath + "#"] = {
+									id,
 									name: "",
+									chunks: chunkIds,
 								};
-								const reference = this.clientModuleReferences.get(module.resource);
-								clientSSRManifest[id] = {
-									"": {
-										id: reference.ssrId,
-										chunks: [],
-										name: "",
-									},
+								ssrExports[""] = {
+									id: reference.ssrId,
+									name: "",
+									chunks: [],
 								};
+
+								const moduleProvidedExports = compilation.moduleGraph
+									.getExportsInfo(module)
+									.getProvidedExports();
+
+								if (Array.isArray(moduleProvidedExports)) {
+									moduleProvidedExports.forEach((name) => {
+										clientManifest[resourcePath + "#" + name] = {
+											id,
+											name: name,
+											chunks: chunkIds,
+										};
+										ssrExports[name] = {
+											id: reference.ssrId,
+											name,
+											chunks: [],
+										};
+									});
+								}
+
+								clientSSRManifest[id] = ssrExports;
 							}
 						};
 
