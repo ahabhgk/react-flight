@@ -1,5 +1,11 @@
 # @react-flight/webpack-plugin
 
+## 0.0.3
+
+### Patch Changes
+
+- 8662258: Supports server actions named export
+
 ## 0.0.2
 
 ### Patch Changes
