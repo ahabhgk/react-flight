@@ -10,8 +10,6 @@ function Status() {
 }
 
 export default function Form({ action, children }) {
-	const [isPending, setIsPending] = React.useState(false);
-
 	return (
 		<ErrorBoundary>
 			<form action={action}>

@@ -4,6 +4,6 @@
 - [x] Server Action (from server)
 - [x] Server Action (from client)
 - [x] SSR
-- [ ] named export
+- [x] named export
 - [ ] CSS
 - [ ] Router

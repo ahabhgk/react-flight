@@ -9,7 +9,7 @@ import LikeButton from "./LikeButton.js";
 import DislikeButton from "./DislikeButton.js";
 import Form from "./Form.js";
 
-import like from "./like.js";
+import { like, greet } from "./actions.js";
 
 import { getServerState } from "./ServerState.js";
 
@@ -35,7 +35,7 @@ export default async function App() {
 					<ShowMore>
 						<p>Lorem ipsum</p>
 					</ShowMore>
-					{/* <Form action={greet} /> */}
+					<Form action={greet} />
 					<div>
 						<LikeButton action={like}>Like</LikeButton>
 						<DislikeButton>Dislike</DislikeButton>

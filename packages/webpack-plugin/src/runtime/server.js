@@ -193,7 +193,7 @@ export function createServerAction(resourcePath, fn) {
 }
 
 export function getServerAction(serverReference, serverActionsManifest) {
-	const [filepath, name] = serverReference.split("#");
-	const moduleId = serverActionsManifest[filepath];
-	return __webpack_require__(moduleId)[name ?? "default"];
+	const [, name] = serverReference.split("#");
+	const moduleId = serverActionsManifest[serverReference];
+	return __webpack_require__(moduleId)[name];
 }
