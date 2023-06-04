@@ -10,6 +10,7 @@ module.exports = function flightLoader(source) {
 	const directive = matched[1];
 	const exportNames = matched[2].split(",");
 
+	// server components
 	if (state.currentLayer === SERVER_LAYER && directive === "client") {
 		state.clientModuleReferences.set(this.resource, {});
 		let count = 0;
@@ -36,38 +37,72 @@ export { e${count++} as ${exportName} };
 		return newSource;
 	}
 
-	if (this.resourceQuery === "?__flight") return source;
+	// server actions
 	if (directive === "server") {
 		if (state.currentLayer === NONE_LAYER) {
 			const { callServer } = this.getOptions();
-			return `
+			let newSource = `
 import { createServerReference } from 'react-server-dom-webpack/client';
 import { ${callServer.exportName} } from "${callServer.path}";
-
-const action = createServerReference(String.raw\`${this.resourcePath}\`, ${callServer.exportName});
-export default action;
 `;
-		} else if (state.currentLayer === CLIENT_LAYER) {
+			for (const exportName of exportNames) {
+				if (exportName.startsWith("default:")) {
+					newSource += `
+export default createServerReference(String.raw\`${`${this.resourcePath}#default`}\`, ${
+						callServer.exportName
+					});
+`;
+				} else {
+					newSource += `
+export const ${exportName} = createServerReference(String.raw\`${`${this.resourcePath}#${exportName}`}\`, ${
+						callServer.exportName
+					});
+`;
+				}
+			}
+			return newSource;
+		}
+		if (state.currentLayer === CLIENT_LAYER) {
 			state.serverActionFromClientResources.push(this.resource);
-			return `
+			let newSource = `
 import { createServerReference } from 'react-server-dom-webpack/client';
-
-const action = createServerReference(String.raw\`${this.resourcePath}\`);
-export default action;
 `;
-		} else if (state.currentLayer === SERVER_LAYER || state.currentLayer === ACTION_LAYER) {
+			for (const exportName of exportNames) {
+				if (exportName.startsWith("default:")) {
+					newSource += `
+export default createServerReference(String.raw\`${`${this.resourcePath}#default`}\`);
+`;
+				} else {
+					newSource += `
+export const ${exportName} = createServerReference(String.raw\`${`${this.resourcePath}#${exportName}`}\`);
+`;
+				}
+			}
+			return newSource;
+		}
+		if (state.currentLayer === SERVER_LAYER || state.currentLayer === ACTION_LAYER) {
 			if (state.currentLayer === SERVER_LAYER) {
 				state.serverActionFromServerResources.push(this.resource);
 			}
-			return `
+			let newSource = `
+${source}
 import { createServerAction } from "${require.resolve("./runtime/server.js")}";
-import * as actions from "${this.resourcePath}?__flight";\n
-
-export default createServerAction(String.raw\`${this.resourcePath}\`, actions.default);
 `;
-		} else {
-			throw new Error(`unreachable: use server directive and layer ${state.currentLayer}`);
+			for (const exportName of exportNames) {
+				if (exportName.startsWith("default:")) {
+					const defaultExportName = exportName.slice(8);
+					newSource += `
+createServerAction(String.raw\`${`${this.resourcePath}#default`}\`, ${defaultExportName});
+`;
+				} else {
+					newSource += `
+createServerAction(String.raw\`${`${this.resourcePath}#${exportName}`}\`, ${exportName});
+`;
+				}
+			}
+			return newSource;
 		}
+		throw new Error(`unreachable: use server directive on layer ${state.currentLayer}`);
 	}
 
 	return source;

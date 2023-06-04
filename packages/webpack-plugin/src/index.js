@@ -96,7 +96,15 @@ class ReactFlightServerWebpackPlugin {
 						if (serverActionResources.has(module.resource)) {
 							const resourcePath = module.resource;
 							if (resourcePath !== undefined) {
-								serverManifest[resourcePath] = id;
+								const moduleProvidedExports = compilation.moduleGraph
+									.getExportsInfo(module)
+									.getProvidedExports();
+
+								if (Array.isArray(moduleProvidedExports)) {
+									moduleProvidedExports.forEach((name) => {
+										serverManifest[resourcePath + "#" + name] = id;
+									});
+								}
 							}
 						} else if (state.clientModuleReferences.has(module.resource)) {
 							const reference = state.clientModuleReferences.get(module.resource);
