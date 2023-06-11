@@ -14,6 +14,7 @@ jobs:
       contents: write # to create release
       issues: write # to post issue comments
       pull-requests: write # to create pull request
+      id-token: write # to add npm provenance
 
     name: Release
     runs-on: ubuntu-latest

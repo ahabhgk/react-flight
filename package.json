@@ -1,11 +1,16 @@
 {
   "name": "@react-flight/monorepo",
   "private": true,
-  "version": "0.0.1",
-  "description": "",
-  "keywords": [],
+  "version": "0.0.0",
+  "description": "Primitives of React Server Components and Server Actions",
   "author": "ahabhgk <ahabhgk@gmail.com> (https://github.com/ahabhgk)",
   "license": "MIT",
+  "homepage": "https://github.com/ahabhgk/react-flight",
+  "bugs": "https://github.com/ahabhgk/react-flight/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ahabhgk/react-flight"
+  },
   "scripts": {
     "fmt": "prettier --write {packages,examples}/**/*.js",
     "prepare": "husky install",

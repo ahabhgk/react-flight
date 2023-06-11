@@ -1,10 +1,17 @@
 {
   "name": "@react-flight/webpack-plugin",
   "version": "0.0.4",
-  "description": "",
+  "description": "Webpack plugin for @react-flight",
   "keywords": [],
   "author": "ahabhgk <ahabhgk@gmail.com> (https://github.com/ahabhgk)",
   "license": "MIT",
+  "homepage": "https://github.com/ahabhgk/react-flight",
+  "bugs": "https://github.com/ahabhgk/react-flight/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ahabhgk/react-flight",
+    "directory": "packages/webpack-plugin"
+  },
   "exports": {
     ".": "./src/index.js",
     "./runtime/server": "./src/runtime/server.js"
