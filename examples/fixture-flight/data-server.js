@@ -7,6 +7,7 @@ const busboy = require("busboy");
 const compress = require("compression");
 const {
 	default: App,
+	setServerState,
 	ReactServerDOMWebpackServer,
 	React,
 	getServerAction,
@@ -69,24 +70,23 @@ app.post("/", bodyParser.text(), async function (req, res) {
 		pipe(res);
 	} else {
 		// This is the progressive enhancement case
-		// const UndiciRequest = require('undici').Request;
-		// const fakeRequest = new UndiciRequest('http://localhost', {
-		//   method: 'POST',
-		//   headers: {'Content-Type': req.headers['content-type']},
-		//   body: Readable.toWeb(req),
-		//   duplex: 'half',
-		// });
-		// const formData = await fakeRequest.formData();
-		// const action = await RSDWServer.decodeAction(formData);
-		// try {
-		//   // Wait for any mutations
-		//   await action();
-		// } catch (x) {
-		//   const {setServerState} = await import('../src/ServerState.js');
-		//   setServerState('Error: ' + x.message);
-		// }
-		// const {pipe} = renderApp(null);
-		// pipe(res)
+		const UndiciRequest = require("undici").Request;
+		const fakeRequest = new UndiciRequest("http://localhost", {
+			method: "POST",
+			headers: { "Content-Type": req.headers["content-type"] },
+			body: Readable.toWeb(req),
+			duplex: "half",
+		});
+		const formData = await fakeRequest.formData();
+		const action = await ReactServerDOMWebpackServer.decodeAction(formData, serverActionsManifest);
+		try {
+			// Wait for any mutations
+			await action();
+		} catch (x) {
+			setServerState("Error: " + x.message);
+		}
+		const { pipe } = renderApp(null);
+		pipe(res);
 	}
 });
 

@@ -91,31 +91,60 @@ class ReactFlightServerWebpackPlugin {
 							[]
 					);
 					const serverManifest = {};
+					compilation.chunkGroups.forEach((chunkGroup) => {
+						const chunkIds = chunkGroup.chunks.map((c) => {
+							return c.id;
+						});
 
-					const recordModule = (id, module) => {
-						if (serverActionResources.has(module.resource)) {
-							const resourcePath = module.resource;
-							if (resourcePath !== undefined) {
-								const moduleProvidedExports = compilation.moduleGraph
-									.getExportsInfo(module)
-									.getProvidedExports();
+						const recordModule = (id, module) => {
+							if (serverActionResources.has(module.resource)) {
+								const resourcePath = module.resource;
+								if (resourcePath !== undefined) {
+									serverManifest[resourcePath] = {
+										id,
+										name: "*",
+										chunks: chunkIds,
+									};
+									serverManifest[resourcePath + "#"] = {
+										id,
+										name: "",
+										chunks: chunkIds,
+									};
 
-								if (Array.isArray(moduleProvidedExports)) {
-									moduleProvidedExports.forEach((name) => {
-										serverManifest[resourcePath + "#" + name] = id;
+									const moduleProvidedExports = compilation.moduleGraph
+										.getExportsInfo(module)
+										.getProvidedExports();
+
+									if (Array.isArray(moduleProvidedExports)) {
+										moduleProvidedExports.forEach((name) => {
+											serverManifest[resourcePath + "#" + name] = {
+												id,
+												name: name,
+												chunks: chunkIds,
+											};
+										});
+									}
+								}
+							} else if (state.clientModuleReferences.has(module.resource)) {
+								const reference = state.clientModuleReferences.get(module.resource);
+								reference.ssrId = id;
+							}
+						};
+
+						chunkGroup.chunks.forEach((chunk) => {
+							const chunkModules = compilation.chunkGraph.getChunkModulesIterable(chunk);
+							Array.from(chunkModules).forEach((module) => {
+								const moduleId = compilation.chunkGraph.getModuleId(module);
+								recordModule(moduleId, module);
+
+								if (module.modules) {
+									module.modules.forEach((concatenatedMod) => {
+										recordModule(moduleId, concatenatedMod);
 									});
 								}
-							}
-						} else if (state.clientModuleReferences.has(module.resource)) {
-							const reference = state.clientModuleReferences.get(module.resource);
-							reference.ssrId = id;
-						}
-					};
-
-					for (const module of compilation.modules) {
-						const moduleId = compilation.chunkGraph.getModuleId(module);
-						recordModule(moduleId, module);
-					}
+							});
+						});
+					});
 
 					const serverOutput = JSON.stringify(serverManifest, null, 2);
 					compilation.emitAsset(
