@@ -192,8 +192,9 @@ export function createServerAction(resourcePath, fn) {
 	});
 }
 
+// TODO: use loadServerReference from react-server-dom-webpack?
 export function getServerAction(serverReference, serverActionsManifest) {
 	const [, name] = serverReference.split("#");
-	const moduleId = serverActionsManifest[serverReference];
-	return __webpack_require__(moduleId)[name];
+	const moduleData = serverActionsManifest[serverReference];
+	return __webpack_require__(moduleData.id)[name];
 }

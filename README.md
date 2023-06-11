@@ -5,7 +5,7 @@
 - [x] Server Actions (from client)
 - [x] SSR
 - [x] Named export for importing Server Components or Server Actions
-- [ ] Progressive Enhancement
+- [x] Progressive Enhancement
 - [ ] Contenthash chunk name for RSC Client Chunk
 - [ ] HMR
 - [ ] Rewrite in TS
