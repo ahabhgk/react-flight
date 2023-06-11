@@ -1,9 +1,14 @@
 # `ReactFlight`
 
-- [x] Server Component
-- [x] Server Action (from server)
-- [x] Server Action (from client)
+- [x] Server Components
+- [x] Server Actions (from server)
+- [x] Server Actions (from client)
 - [x] SSR
-- [x] named export
+- [x] Named export for importing Server Components or Server Actions
+- [ ] Progressive Enhancement
+- [ ] Contenthash chunk name for RSC Client Chunk
+- [ ] HMR
+- [ ] Rewrite in TS
 - [ ] CSS
 - [ ] Router
+- [ ] Ejectable minimal framework
