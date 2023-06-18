@@ -24,7 +24,7 @@ class ReactFlightServerWebpackPlugin {
 			ReactFlightServerWebpackPlugin.name,
 			async (compilation) => {
 				const addEntry = (resources, layer) => {
-					// use dynamic import to ensure not to be tree shaken or concatenated
+					// use dynamic import to ensure not to be tree-shaken or concatenated
 					const entrySource = resources
 						.map((resource) => `import(/* webpackMode: "eager" */ ${JSON.stringify(resource)});`)
 						.join("");
