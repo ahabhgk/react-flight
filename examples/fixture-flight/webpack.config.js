@@ -43,11 +43,23 @@ module.exports = [
 				},
 			},
 		},
-		mode: "development",
+		output: {
+			path: path.join(__dirname, "dist", "server"),
+		},
+		mode: "production",
 		target: "node",
 		devtool: false,
 		module: {
-			rules: [jsRule, ...reactServerRules({ test: /\.jsx?$/ })],
+			rules: [
+				jsRule,
+				{
+					test: /\.jsx?$/,
+					issuerLayer: "server",
+					resolve: {
+						conditionNames: ["react-server", "..."],
+					},
+				},
+			],
 		},
 		plugins: [new ReactFlightServerWebpackPlugin()],
 		externals: {
@@ -65,7 +77,11 @@ module.exports = [
 		entry: {
 			["client-entry"]: "./src/client-entry.js",
 		},
-		mode: "development",
+		output: {
+			filename: "[name]-[contenthash].js",
+			path: path.join(__dirname, "dist", "client"),
+		},
+		mode: "production",
 		target: "web",
 		devtool: false,
 		module: {

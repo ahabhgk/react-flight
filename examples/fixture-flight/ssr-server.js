@@ -3,17 +3,17 @@ const fs = require("node:fs");
 const http = require("node:http");
 const express = require("express");
 const compress = require("compression");
-const { ReactServerDOMWebpackClient, ReactDOMServer } = require("./dist/server-entry");
+const { ReactServerDOMWebpackClient, ReactDOMServer } = require("./dist/server/server-entry");
 
 const clientModulesSSRManifest = JSON.parse(
-	fs.readFileSync(path.resolve(__dirname, `./dist/client-modules-ssr.json`), "utf8")
+	fs.readFileSync(path.resolve(__dirname, `./dist/client/client-modules-ssr.json`), "utf8")
 );
 
 const app = express();
 
 app.use(compress());
 
-app.use(express.static(path.resolve(__dirname, "./dist")));
+app.use(express.static(path.join(__dirname, "dist", "client")));
 
 function request(options, body) {
 	return new Promise((resolve, reject) => {
@@ -67,7 +67,7 @@ app.all("/", async function (req, res) {
 			// Render it into HTML by resolving the client components
 			res.set("Content-type", "text/html");
 			const { pipe } = ReactDOMServer.renderToPipeableStream(root, {
-				bootstrapScripts: ["client-entry.js"],
+				bootstrapScripts: ["client-entry-8a6ea1e0bd297105e030.js"],
 			});
 			pipe(res);
 		} catch (e) {

@@ -1,47 +1,35 @@
-const NONE_LAYER = "NONE_LAYER";
-const SERVER_LAYER = "SERVER_LAYER";
-const CLIENT_LAYER = "CLIENT_LAYER";
-const ACTION_LAYER = "ACTION_LAYER";
-
-const state = {
-	clientModuleReferences: new Map(),
-	serverActionFromServerResources: [],
-	serverActionFromClientResources: [],
-	currentLayer: SERVER_LAYER,
-};
+const {
+	state,
+	SSR_PHASE,
+	CSR_PHASE,
+	SERVER_FROM_CLIENT_PHASE,
+	SERVER_COMPONENT,
+	SERVER_ACTION_FROM_SERVER,
+	SERVER_ACTION_FROM_CLIENT,
+} = require("./shared.js");
 
 class ReactFlightServerWebpackPlugin {
 	constructor(options) {
 		this.entryNames = options?.entryNames ?? ["server-entry"];
 		this.serverLayer = options?.serverLayer ?? "server";
 		this.clientLayer = options?.clientLayer ?? "client";
-		this.fromClientActionLayer = options?.actionLayer ?? "action";
 		this.serverActionsManifestFilename =
 			options?.serverActionsManifestFilename ?? "server-actions.json";
 	}
 
 	apply(compiler) {
+		const { webpack } = compiler;
+
 		compiler.hooks.finishMake.tapPromise(
 			ReactFlightServerWebpackPlugin.name,
 			async (compilation) => {
-				const addClientModules = (clientModuleResources) => {
-					return Promise.all(
-						this.entryNames.flatMap((name) =>
-							clientModuleResources.map((resource) =>
-								addModuleTree(name, this.clientLayer, resource)
-							)
-						)
-					);
-				};
-
-				const addFromClientServerActions = (serverActionResources) => {
-					return Promise.all(
-						this.entryNames.flatMap((name) =>
-							serverActionResources.map((resource) =>
-								addModuleTree(name, this.fromClientActionLayer, resource)
-							)
-						)
-					);
+				const addEntry = (resources, layer) => {
+					// use dynamic import to ensure not to be tree shaken or concatenated
+					const entrySource = resources
+						.map((resource) => `import(/* webpackMode: "eager" */ ${JSON.stringify(resource)});`)
+						.join("");
+					const entry = `data:text/javascript,${entrySource}`;
+					return Promise.all(this.entryNames.map((name) => addModuleTree(name, layer, entry)));
 				};
 
 				const addModuleTree = (name, layer, request) => {
@@ -71,15 +59,37 @@ class ReactFlightServerWebpackPlugin {
 					});
 				};
 
-				state.currentLayer = CLIENT_LAYER;
-				await addClientModules([...state.clientModuleReferences.keys()]);
-				state.currentLayer = ACTION_LAYER;
-				await addFromClientServerActions(state.serverActionFromClientResources);
+				const collectModuleByFlightType = () => {
+					for (const module of compilation.modules) {
+						switch (module?.buildInfo?.flightType) {
+							case SERVER_COMPONENT:
+								state.clientModuleReferences.set(module.resource, {});
+								break;
+							case SERVER_ACTION_FROM_SERVER:
+								state.serverActionFromServerResources.add(module.resource);
+								break;
+							case SERVER_ACTION_FROM_CLIENT:
+								state.serverActionFromClientResources.add(module.resource);
+								break;
+							default:
+								break;
+						}
+					}
+				};
+
+				collectModuleByFlightType();
+				state.currentLayer = SSR_PHASE;
+				await Promise.all([
+					addEntry([...state.clientModuleReferences.keys()], this.clientLayer),
+					addEntry([...state.serverActionFromServerResources], this.serverLayer),
+				]);
+				collectModuleByFlightType();
+				state.currentLayer = SERVER_FROM_CLIENT_PHASE;
+				await addEntry([...state.serverActionFromClientResources], this.serverLayer);
 			}
 		);
 
 		compiler.hooks.make.tap(ReactFlightServerWebpackPlugin.name, (compilation) => {
-			const { webpack } = compiler;
 			compilation.hooks.processAssets.tap(
 				{
 					name: ReactFlightServerWebpackPlugin.name,
@@ -97,7 +107,10 @@ class ReactFlightServerWebpackPlugin {
 						});
 
 						const recordModule = (id, module) => {
-							if (serverActionResources.has(module.resource)) {
+							if (
+								module?.buildInfo?.flightType !== SERVER_ACTION_FROM_CLIENT &&
+								serverActionResources.has(module.resource)
+							) {
 								const resourcePath = module.resource;
 								if (resourcePath !== undefined) {
 									serverManifest[resourcePath] = {
@@ -111,21 +124,19 @@ class ReactFlightServerWebpackPlugin {
 										chunks: chunkIds,
 									};
 
-									const moduleProvidedExports = compilation.moduleGraph
-										.getExportsInfo(module)
-										.getProvidedExports();
-
-									if (Array.isArray(moduleProvidedExports)) {
-										moduleProvidedExports.forEach((name) => {
-											serverManifest[resourcePath + "#" + name] = {
-												id,
-												name: name,
-												chunks: chunkIds,
-											};
-										});
-									}
+									const moduleExportsInfo = compilation.moduleGraph.getExportsInfo(module);
+									[...moduleExportsInfo.orderedExports].forEach((exportInfo) => {
+										serverManifest[resourcePath + "#" + exportInfo.name] = {
+											id,
+											name: exportInfo.getUsedName(),
+											chunks: chunkIds,
+										};
+									});
 								}
-							} else if (state.clientModuleReferences.has(module.resource)) {
+							} else if (
+								module?.buildInfo?.flightType === undefined &&
+								state.clientModuleReferences.has(module.resource)
+							) {
 								const reference = state.clientModuleReferences.get(module.resource);
 								reference.ssrId = id;
 							}
@@ -198,7 +209,8 @@ class ReactFlightClientWebpackPlugin {
 		compiler.hooks.thisCompilation.tap(
 			ReactFlightClientWebpackPlugin.name,
 			(compilation, { normalModuleFactory }) => {
-				state.currentLayer = NONE_LAYER;
+				state.currentLayer = CSR_PHASE;
+
 				compilation.dependencyFactories.set(ClientReferenceDependency, normalModuleFactory);
 				compilation.dependencyTemplates.set(
 					ClientReferenceDependency,
@@ -361,37 +373,6 @@ class ReactFlightClientWebpackPlugin {
 	}
 }
 
-function reactServerRules(options) {
-	const serverLayer = options.serverLayer ?? "server";
-	const actionLayer = options.actionLayer ?? "action";
-	const conditions = { ...options };
-	delete conditions.serverLayer;
-	delete conditions.actionLayer;
-
-	return [
-		{
-			...conditions,
-			issuerLayer: { or: [serverLayer, actionLayer] },
-			resolve: {
-				conditionNames: ["react-server", "..."],
-			},
-		},
-		{
-			issuerLayer: [actionLayer],
-			layer: serverLayer,
-		},
-	];
-}
-
-/* public api */
 module.exports.ReactFlightServerWebpackPlugin = ReactFlightServerWebpackPlugin;
 module.exports.ReactFlightClientWebpackPlugin = ReactFlightClientWebpackPlugin;
 module.exports.loader = require.resolve("./flight-loader");
-module.exports.reactServerRules = reactServerRules;
-
-/* private api */
-module.exports.state = state;
-module.exports.SERVER_LAYER = SERVER_LAYER;
-module.exports.CLIENT_LAYER = CLIENT_LAYER;
-module.exports.ACTION_LAYER = ACTION_LAYER;
-module.exports.NONE_LAYER = NONE_LAYER;

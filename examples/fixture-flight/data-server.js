@@ -11,13 +11,13 @@ const {
 	ReactServerDOMWebpackServer,
 	React,
 	getServerAction,
-} = require("./dist/server-entry");
+} = require("./dist/server/server-entry");
 
 const clientModulesManifest = JSON.parse(
-	fs.readFileSync(path.resolve(__dirname, `./dist/client-modules.json`), "utf8")
+	fs.readFileSync(path.resolve(__dirname, `./dist/client/client-modules.json`), "utf8")
 );
 const serverActionsManifest = JSON.parse(
-	fs.readFileSync(path.resolve(__dirname, `./dist/server-actions.json`), "utf8")
+	fs.readFileSync(path.resolve(__dirname, `./dist/server/server-actions.json`), "utf8")
 );
 
 const app = express();
