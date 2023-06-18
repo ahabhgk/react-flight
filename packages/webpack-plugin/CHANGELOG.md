@@ -1,5 +1,11 @@
 # @react-flight/webpack-plugin
 
+## 0.0.5
+
+### Patch Changes
+
+- 77d10e0: Fix production build
+
 ## 0.0.4
 
 ### Patch Changes

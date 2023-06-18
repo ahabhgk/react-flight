@@ -1,6 +1,6 @@
 {
   "name": "@react-flight/babel-plugin",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Babel plugin for @react-flight",
   "keywords": [],
   "author": "ahabhgk <ahabhgk@gmail.com> (https://github.com/ahabhgk)",
