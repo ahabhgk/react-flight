@@ -1,4 +1,13 @@
-const { state, SERVER_LAYER, CLIENT_LAYER, ACTION_LAYER, NONE_LAYER } = require("./index");
+const {
+	state,
+	SERVER_PHASE,
+	SSR_PHASE,
+	SERVER_FROM_CLIENT_PHASE,
+	CSR_PHASE,
+	SERVER_COMPONENT,
+	SERVER_ACTION_FROM_SERVER,
+	SERVER_ACTION_FROM_CLIENT,
+} = require("./shared.js");
 
 const INTERNAL_COMMENT_REGEX = /\/\*@react-flight\/internal:(.*)\|(.*)\*\//;
 
@@ -11,8 +20,8 @@ module.exports = function flightLoader(source) {
 	const exportNames = matched[2].split(",");
 
 	// server components
-	if (state.currentLayer === SERVER_LAYER && directive === "client") {
-		state.clientModuleReferences.set(this.resource, {});
+	if (state.currentLayer === SERVER_PHASE && directive === "client") {
+		this._module.buildInfo.flightType = SERVER_COMPONENT;
 		let count = 0;
 		let newSource = `
 import { createClientReference } from "${require.resolve("./runtime/server.js")}";
@@ -39,7 +48,7 @@ export { e${count++} as ${exportName} };
 
 	// server actions
 	if (directive === "server") {
-		if (state.currentLayer === NONE_LAYER) {
+		if (state.currentLayer === CSR_PHASE) {
 			const { callServer } = this.getOptions();
 			let newSource = `
 import { createServerReference } from 'react-server-dom-webpack/client';
@@ -62,8 +71,8 @@ export const ${exportName} = createServerReference(String.raw\`${`${this.resourc
 			}
 			return newSource;
 		}
-		if (state.currentLayer === CLIENT_LAYER) {
-			state.serverActionFromClientResources.push(this.resource);
+		if (state.currentLayer === SSR_PHASE) {
+			this._module.buildInfo.flightType = SERVER_ACTION_FROM_CLIENT;
 			let newSource = `
 import { createServerReference } from 'react-server-dom-webpack/client';
 `;
@@ -80,9 +89,9 @@ export const ${exportName} = createServerReference(String.raw\`${`${this.resourc
 			}
 			return newSource;
 		}
-		if (state.currentLayer === SERVER_LAYER || state.currentLayer === ACTION_LAYER) {
-			if (state.currentLayer === SERVER_LAYER) {
-				state.serverActionFromServerResources.push(this.resource);
+		if (state.currentLayer === SERVER_PHASE || state.currentLayer === SERVER_FROM_CLIENT_PHASE) {
+			if (state.currentLayer === SERVER_PHASE) {
+				this._module.buildInfo.flightType = SERVER_ACTION_FROM_SERVER;
 			}
 			let newSource = `
 ${source}
