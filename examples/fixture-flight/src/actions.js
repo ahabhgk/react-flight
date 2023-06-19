@@ -7,6 +7,11 @@ export async function like() {
 	return new Promise((resolve, reject) => resolve("Liked"));
 }
 
+export async function dislike() {
+	setServerState("Disliked!");
+	return new Promise((resolve, reject) => resolve("Disliked"));
+}
+
 export async function greet(formData) {
 	const name = formData.get("name") || "you";
 	setServerState("Hi " + name);

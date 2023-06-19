@@ -8,6 +8,9 @@ const { ReactServerDOMWebpackClient, ReactDOMServer } = require("./dist/server/s
 const clientModulesSSRManifest = JSON.parse(
 	fs.readFileSync(path.resolve(__dirname, `./dist/client/client-modules-ssr.json`), "utf8")
 );
+const entryManifest = JSON.parse(
+	fs.readFileSync(path.resolve(__dirname, `./dist/client/entry-manifest.json`), "utf8")
+);
 
 const app = express();
 
@@ -67,7 +70,7 @@ app.all("/", async function (req, res) {
 			// Render it into HTML by resolving the client components
 			res.set("Content-type", "text/html");
 			const { pipe } = ReactDOMServer.renderToPipeableStream(root, {
-				bootstrapScripts: ["client-entry-8a6ea1e0bd297105e030.js"],
+				bootstrapScripts: entryManifest["client-entry"].js,
 			});
 			pipe(res);
 		} catch (e) {

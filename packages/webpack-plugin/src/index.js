@@ -78,13 +78,13 @@ class ReactFlightServerWebpackPlugin {
 				};
 
 				collectModuleByFlightType();
-				state.currentLayer = SSR_PHASE;
+				state.currentPhase = SSR_PHASE;
 				await Promise.all([
 					addEntry([...state.clientModuleReferences.keys()], this.clientLayer),
 					addEntry([...state.serverActionFromServerResources], this.serverLayer),
 				]);
 				collectModuleByFlightType();
-				state.currentLayer = SERVER_FROM_CLIENT_PHASE;
+				state.currentPhase = SERVER_FROM_CLIENT_PHASE;
 				await addEntry([...state.serverActionFromClientResources], this.serverLayer);
 			}
 		);
@@ -209,7 +209,7 @@ class ReactFlightClientWebpackPlugin {
 		compiler.hooks.thisCompilation.tap(
 			ReactFlightClientWebpackPlugin.name,
 			(compilation, { normalModuleFactory }) => {
-				state.currentLayer = CSR_PHASE;
+				state.currentPhase = CSR_PHASE;
 
 				compilation.dependencyFactories.set(ClientReferenceDependency, normalModuleFactory);
 				compilation.dependencyTemplates.set(

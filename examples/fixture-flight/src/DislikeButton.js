@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import dislike from "./dislike";
+import { dislike } from "./actions";
 
 export default function Button({ children }) {
 	return (

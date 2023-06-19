@@ -18,5 +18,5 @@ exports.state = {
 	clientModuleReferences: new Map(),
 	serverActionFromServerResources: new Set(),
 	serverActionFromClientResources: new Set(),
-	currentLayer: exports.SERVER_PHASE,
+	currentPhase: exports.SERVER_PHASE,
 };

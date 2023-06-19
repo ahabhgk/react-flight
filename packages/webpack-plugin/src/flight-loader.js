@@ -12,15 +12,12 @@ const {
 const INTERNAL_COMMENT_REGEX = /\/\*@react-flight\/internal:(.*)\|(.*)\*\//;
 
 module.exports = function flightLoader(source) {
-	// TODO: use AST to find directive
-	// TODO: use AST to create reference for non-default export
-
 	const matched = source.match(INTERNAL_COMMENT_REGEX);
 	const directive = matched[1];
 	const exportNames = matched[2].split(",");
 
 	// server components
-	if (state.currentLayer === SERVER_PHASE && directive === "client") {
+	if (state.currentPhase === SERVER_PHASE && directive === "client") {
 		this._module.buildInfo.flightType = SERVER_COMPONENT;
 		let count = 0;
 		let newSource = `
@@ -48,49 +45,36 @@ export { e${count++} as ${exportName} };
 
 	// server actions
 	if (directive === "server") {
-		if (state.currentLayer === CSR_PHASE) {
+		if (state.currentPhase === SSR_PHASE || state.currentPhase === CSR_PHASE) {
+			if (state.currentPhase === SSR_PHASE) {
+				this._module.buildInfo.flightType = SERVER_ACTION_FROM_CLIENT;
+			}
 			const { callServer } = this.getOptions();
 			let newSource = `
 import { createServerReference } from 'react-server-dom-webpack/client';
+`;
+			if (state.currentPhase === CSR_PHASE) {
+				newSource += `
 import { ${callServer.exportName} } from "${callServer.path}";
 `;
+			}
 			for (const exportName of exportNames) {
 				if (exportName.startsWith("default:")) {
+					const arg = state.currentPhase === CSR_PHASE ? callServer.exportName : "undefined";
 					newSource += `
-export default createServerReference(String.raw\`${`${this.resourcePath}#default`}\`, ${
-						callServer.exportName
-					});
+export default createServerReference(String.raw\`${`${this.resourcePath}#default`}\`, ${arg});
 `;
 				} else {
+					const arg = state.currentPhase === CSR_PHASE ? callServer.exportName : "undefined";
 					newSource += `
-export const ${exportName} = createServerReference(String.raw\`${`${this.resourcePath}#${exportName}`}\`, ${
-						callServer.exportName
-					});
+export const ${exportName} = createServerReference(String.raw\`${`${this.resourcePath}#${exportName}`}\`, ${arg});
 `;
 				}
 			}
 			return newSource;
 		}
-		if (state.currentLayer === SSR_PHASE) {
-			this._module.buildInfo.flightType = SERVER_ACTION_FROM_CLIENT;
-			let newSource = `
-import { createServerReference } from 'react-server-dom-webpack/client';
-`;
-			for (const exportName of exportNames) {
-				if (exportName.startsWith("default:")) {
-					newSource += `
-export default createServerReference(String.raw\`${`${this.resourcePath}#default`}\`);
-`;
-				} else {
-					newSource += `
-export const ${exportName} = createServerReference(String.raw\`${`${this.resourcePath}#${exportName}`}\`);
-`;
-				}
-			}
-			return newSource;
-		}
-		if (state.currentLayer === SERVER_PHASE || state.currentLayer === SERVER_FROM_CLIENT_PHASE) {
-			if (state.currentLayer === SERVER_PHASE) {
+		if (state.currentPhase === SERVER_PHASE || state.currentPhase === SERVER_FROM_CLIENT_PHASE) {
+			if (state.currentPhase === SERVER_PHASE) {
 				this._module.buildInfo.flightType = SERVER_ACTION_FROM_SERVER;
 			}
 			let newSource = `
@@ -111,7 +95,7 @@ createServerAction(String.raw\`${`${this.resourcePath}#${exportName}`}\`, ${expo
 			}
 			return newSource;
 		}
-		throw new Error(`unreachable: use server directive on layer ${state.currentLayer}`);
+		throw new Error(`unreachable: use server directive on layer ${state.currentPhase}`);
 	}
 
 	return source;

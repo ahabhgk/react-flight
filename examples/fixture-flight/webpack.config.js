@@ -3,7 +3,6 @@ const {
 	ReactFlightServerWebpackPlugin,
 	ReactFlightClientWebpackPlugin,
 	loader: flightLoader,
-	reactServerRules,
 } = require("@react-flight/webpack-plugin");
 const { default: reactFlightBabelPlugin } = require("@react-flight/babel-plugin");
 
@@ -87,6 +86,33 @@ module.exports = [
 		module: {
 			rules: [jsRule],
 		},
-		plugins: [new ReactFlightClientWebpackPlugin()],
+		plugins: [
+			new ReactFlightClientWebpackPlugin(),
+			function EntryManifestPlugin(compiler) {
+				compiler.hooks.thisCompilation.tap(EntryManifestPlugin.name, (compilation) => {
+					compilation.hooks.processAssets.tap(EntryManifestPlugin.name, () => {
+						const manifest = {};
+						for (const [name, entrypoint] of compilation.entrypoints) {
+							const files = entrypoint.getFiles().filter((file) => {
+								const asset = compilation.getAsset(file);
+								if (!asset) {
+									return true;
+								}
+								const info = asset.info ?? {};
+								return !(info.hotModuleReplacement || info.development);
+							});
+							manifest[name] = {
+								js: files.filter((filename) => filename.endsWith(".js")),
+								css: files.filter((filename) => filename.endsWith(".css")),
+							};
+						}
+						compilation.emitAsset(
+							"entry-manifest.json",
+							new compiler.webpack.sources.RawSource(JSON.stringify(manifest, null, 2))
+						);
+					});
+				});
+			},
+		],
 	},
 ];
