@@ -74,13 +74,11 @@ class ReactFlightServerWebpackPlugin {
 			async (compilation) => {
 				const addEntry = (resources, layer) => {
 					// use dynamic import to ensure not to be tree-shaken or concatenated
-					const entrySource = resources
+					const source = resources
 						.map((resource) => `import(/* webpackMode: "eager" */ ${JSON.stringify(resource)});`)
 						.join("");
-					const entryRequest = `data:text/javascript,${entrySource}`;
-					return Promise.all(
-						this.entryNames.map((name) => addModuleTree(name, layer, entryRequest))
-					);
+					const request = `data:text/javascript,${source}`;
+					return Promise.all(this.entryNames.map((name) => addModuleTree(name, layer, request)));
 				};
 
 				const addModuleTree = (name, layer, request) => {
