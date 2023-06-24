@@ -95,10 +95,9 @@ module.exports = [
 		name: "csr",
 		dependencies: ["ssr"],
 		entry: {
-			["client-entry"]: [
-				isDevelopment && "webpack-hot-middleware/client",
-				"./src/client-entry.js",
-			].filter(Boolean),
+			["client-entry"]: [isDevelopment && "./hot-client.js", "./src/client-entry.js"].filter(
+				Boolean
+			),
 		},
 		output: {
 			filename: "[name]-[contenthash].js",

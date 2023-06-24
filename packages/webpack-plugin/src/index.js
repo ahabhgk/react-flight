@@ -1,8 +1,56 @@
 /** shared state for server plugin and client plugin */
 const state = {
+	// "use client" client boundary
 	clientComponents: new Map(),
 	serverActions: new Set(),
 };
+
+class ServerComponentInvalidatedWebpackPlugin {
+	constructor(callback) {
+		this.prevSCModuleHashes = null;
+		this.callback = callback;
+	}
+
+	apply(compiler) {
+		compiler.hooks.done.tap(ServerComponentInvalidatedWebpackPlugin.name, ({ compilation }) => {
+			const moduleHashes = ServerComponentInvalidatedWebpackPlugin.collectModuleHashes(compilation);
+			// initial
+			if (this.prevSCModuleHashes === null) return this.final(false, moduleHashes);
+			// add or delete, fast path
+			if (this.prevSCModuleHashes.size !== moduleHashes.size) return this.final(true, moduleHashes);
+			for (const [identifier, hash] of moduleHashes) {
+				const prevHash = this.prevSCModuleHashes.get(identifier);
+				// add
+				if (!prevHash) return this.final(true, moduleHashes);
+				// change
+				if (prevHash !== hash) return this.final(true, moduleHashes);
+				this.prevSCModuleHashes.delete(identifier);
+			}
+			// delete
+			if (this.prevSCModuleHashes.size > 0) return this.final(true, moduleHashes);
+			return this.final(false, moduleHashes);
+		});
+	}
+
+	final(changed, moduleHashes) {
+		this.prevSCModuleHashes = moduleHashes;
+		this.callback(changed);
+	}
+
+	static collectModuleHashes(compilation) {
+		const map = new Map();
+		for (const module of compilation.modules) {
+			if (
+				module.layer === "server" &&
+				module.buildInfo?.directive === "none" &&
+				module.buildInfo.hash
+			) {
+				map.set(module.identifier(), module.buildInfo.hash);
+			}
+		}
+		return map;
+	}
+}
 
 class ReactFlightServerWebpackPlugin {
 	constructor(options) {
@@ -26,11 +74,11 @@ class ReactFlightServerWebpackPlugin {
 			async (compilation) => {
 				const addEntry = (resources, layer) => {
 					// use dynamic import to ensure not to be tree-shaken or concatenated
-					const entrySource = resources
+					const source = resources
 						.map((resource) => `import(/* webpackMode: "eager" */ ${JSON.stringify(resource)});`)
 						.join("");
-					const entry = `data:text/javascript,${entrySource}`;
-					return Promise.all(this.entryNames.map((name) => addModuleTree(name, layer, entry)));
+					const request = `data:text/javascript,${source}`;
+					return Promise.all(this.entryNames.map((name) => addModuleTree(name, layer, request)));
 				};
 
 				const addModuleTree = (name, layer, request) => {
@@ -352,4 +400,5 @@ class ReactFlightClientWebpackPlugin {
 
 module.exports.ReactFlightServerWebpackPlugin = ReactFlightServerWebpackPlugin;
 module.exports.ReactFlightClientWebpackPlugin = ReactFlightClientWebpackPlugin;
+module.exports.ServerComponentInvalidatedWebpackPlugin = ServerComponentInvalidatedWebpackPlugin;
 module.exports.loader = require.resolve("./flight-loader");
