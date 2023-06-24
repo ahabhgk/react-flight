@@ -1,5 +1,11 @@
 # @react-flight/webpack-plugin
 
+## 0.0.7
+
+### Patch Changes
+
+- c0ea102: Support server components HMR
+
 ## 0.0.6
 
 ### Patch Changes
