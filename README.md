@@ -6,8 +6,8 @@
 - [x] SSR
 - [x] Named export for importing Server Components or Server Actions
 - [x] Progressive Enhancement
-- [x] HMR (client components)
-- [ ] HMR (server components)
+- [x] HMR for Client Components
+- [x] Hot Reload for Server Components
 - [ ] Rewrite in TS
 - [ ] Router
 - [ ] CSS
