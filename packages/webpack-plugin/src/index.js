@@ -1,12 +1,8 @@
-const {
-	state,
-	SSR_PHASE,
-	CSR_PHASE,
-	SERVER_FROM_CLIENT_PHASE,
-	SERVER_COMPONENT,
-	SERVER_ACTION_FROM_SERVER,
-	SERVER_ACTION_FROM_CLIENT,
-} = require("./shared.js");
+/** shared state for server plugin and client plugin */
+const state = {
+	clientComponents: new Map(),
+	serverActions: new Set(),
+};
 
 class ReactFlightServerWebpackPlugin {
 	constructor(options) {
@@ -19,6 +15,11 @@ class ReactFlightServerWebpackPlugin {
 
 	apply(compiler) {
 		const { webpack } = compiler;
+
+		compiler.hooks.beforeCompile.tap(ReactFlightServerWebpackPlugin.name, () => {
+			state.clientComponents.clear();
+			state.serverActions.clear();
+		});
 
 		compiler.hooks.finishMake.tapPromise(
 			ReactFlightServerWebpackPlugin.name,
@@ -59,33 +60,18 @@ class ReactFlightServerWebpackPlugin {
 					});
 				};
 
-				const collectModuleByFlightType = () => {
+				const collectResources = (directive, collect) => {
 					for (const module of compilation.modules) {
-						switch (module?.buildInfo?.flightType) {
-							case SERVER_COMPONENT:
-								state.clientModuleReferences.set(module.resource, {});
-								break;
-							case SERVER_ACTION_FROM_SERVER:
-								state.serverActionFromServerResources.add(module.resource);
-								break;
-							case SERVER_ACTION_FROM_CLIENT:
-								state.serverActionFromClientResources.add(module.resource);
-								break;
-							default:
-								break;
+						if (directive === module.buildInfo?.directive) {
+							collect(module.resource);
 						}
 					}
 				};
 
-				collectModuleByFlightType();
-				state.currentPhase = SSR_PHASE;
-				await Promise.all([
-					addEntry([...state.clientModuleReferences.keys()], this.clientLayer),
-					addEntry([...state.serverActionFromServerResources], this.serverLayer),
-				]);
-				collectModuleByFlightType();
-				state.currentPhase = SERVER_FROM_CLIENT_PHASE;
-				await addEntry([...state.serverActionFromClientResources], this.serverLayer);
+				collectResources("client", (resource) => state.clientComponents.set(resource, {}));
+				await addEntry([...state.clientComponents.keys()], this.clientLayer);
+				collectResources("server", (resource) => state.serverActions.add(resource));
+				await addEntry([...state.serverActions], this.serverLayer);
 			}
 		);
 
@@ -96,10 +82,6 @@ class ReactFlightServerWebpackPlugin {
 					stage: webpack.Compilation.PROCESS_ASSETS_STAGE_REPORT,
 				},
 				() => {
-					const serverActionResources = new Set(
-						[...state.serverActionFromServerResources, ...state.serverActionFromClientResources] ??
-							[]
-					);
 					const serverManifest = {};
 					compilation.chunkGroups.forEach((chunkGroup) => {
 						const chunkIds = chunkGroup.chunks.map((c) => {
@@ -107,10 +89,7 @@ class ReactFlightServerWebpackPlugin {
 						});
 
 						const recordModule = (id, module) => {
-							if (
-								module?.buildInfo?.flightType !== SERVER_ACTION_FROM_CLIENT &&
-								serverActionResources.has(module.resource)
-							) {
+							if (module?.layer === this.serverLayer && state.serverActions.has(module.resource)) {
 								const resourcePath = module.resource;
 								if (resourcePath !== undefined) {
 									serverManifest[resourcePath] = {
@@ -134,10 +113,10 @@ class ReactFlightServerWebpackPlugin {
 									});
 								}
 							} else if (
-								module?.buildInfo?.flightType === undefined &&
-								state.clientModuleReferences.has(module.resource)
+								module?.layer === this.clientLayer &&
+								state.clientComponents.has(module.resource)
 							) {
-								const reference = state.clientModuleReferences.get(module.resource);
+								const reference = state.clientComponents.get(module.resource);
 								reference.ssrId = id;
 							}
 						};
@@ -170,7 +149,7 @@ class ReactFlightServerWebpackPlugin {
 
 class ReactFlightClientWebpackPlugin {
 	constructor(options) {
-		this.clientModuleReferences = options?.clientModuleReferences ?? state.clientModuleReferences;
+		this.clientComponents = options?.clientComponents ?? state.clientComponents;
 
 		if (typeof options?.chunkName === "string") {
 			this.chunkName = options.chunkName;
@@ -182,10 +161,10 @@ class ReactFlightClientWebpackPlugin {
 			this.chunkName = "client[index]";
 		}
 
-		this.clientModulesManifestFilename =
-			options?.clientModulesManifestFilename ?? "client-modules.json";
-		this.clientModulesSSRManifestFilename =
-			options?.clientModulesSSRManifestFilename ?? "client-modules-ssr.json";
+		this.clientComponentsManifestFilename =
+			options?.clientComponentsManifestFilename ?? "client-components.json";
+		this.clientComponentsSSRManifestFilename =
+			options?.clientComponentsSSRManifestFilename ?? "client-components-ssr.json";
 	}
 
 	apply(compiler) {
@@ -209,8 +188,6 @@ class ReactFlightClientWebpackPlugin {
 		compiler.hooks.thisCompilation.tap(
 			ReactFlightClientWebpackPlugin.name,
 			(compilation, { normalModuleFactory }) => {
-				state.currentPhase = CSR_PHASE;
-
 				compilation.dependencyFactories.set(ClientReferenceDependency, normalModuleFactory);
 				compilation.dependencyTemplates.set(
 					ClientReferenceDependency,
@@ -227,8 +204,8 @@ class ReactFlightClientWebpackPlugin {
 
 						clientFileNameFound = true;
 
-						if (this.clientModuleReferences) {
-							const resources = [...this.clientModuleReferences.keys()];
+						if (this.clientComponents) {
+							const resources = [...this.clientComponents.keys()];
 							for (let i = 0; i < resources.length; i++) {
 								const resource = resources[i];
 								const dep = new ClientReferenceDependency(resource);
@@ -288,14 +265,14 @@ class ReactFlightClientWebpackPlugin {
 						});
 
 						const recordModule = (id, module) => {
-							if (!this.clientModuleReferences.has(module.resource)) {
+							if (!this.clientComponents.has(module.resource)) {
 								return;
 							}
 
 							const resourcePath = module.resource;
 
 							if (resourcePath !== undefined) {
-								const reference = this.clientModuleReferences.get(module.resource);
+								const reference = this.clientComponents.get(module.resource);
 								const ssrExports = {};
 
 								clientManifest[resourcePath] = {
@@ -359,12 +336,12 @@ class ReactFlightClientWebpackPlugin {
 					});
 					const clientOutput = JSON.stringify(clientManifest, null, 2);
 					compilation.emitAsset(
-						this.clientModulesManifestFilename,
+						this.clientComponentsManifestFilename,
 						new webpack.sources.RawSource(clientOutput, false)
 					);
 					const clientSSROutput = JSON.stringify(clientSSRManifest, null, 2);
 					compilation.emitAsset(
-						this.clientModulesSSRManifestFilename,
+						this.clientComponentsSSRManifestFilename,
 						new webpack.sources.RawSource(clientSSROutput, false)
 					);
 				}

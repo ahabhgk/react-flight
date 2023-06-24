@@ -7,21 +7,28 @@
 	"author": "ahabhgk <ahabhgk@gmail.com> (https://github.com/ahabhgk)",
 	"license": "MIT",
 	"scripts": {
-		"build": "webpack",
+		"dev": "concurrently \"pnpm dev:data\" \"pnpm dev:ssr\"",
+		"dev:ssr": "NODE_ENV=development node ./ssr-server.js",
+		"dev:data": "NODE_ENV=development node --conditions=react-server ./data-server.js",
+		"build": "NODE_ENV=production webpack",
 		"start": "concurrently \"pnpm start:data\" \"pnpm start:ssr\"",
-		"start:ssr": "node ./ssr-server.js",
-		"start:data": "node ./data-server.js"
+		"start:ssr": "NODE_ENV=production node ./ssr-server.js",
+		"start:data": "NODE_ENV=production node --conditions=react-server ./data-server.js"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.21.4",
 		"@babel/preset-react": "^7.18.6",
+		"@pmmmwh/react-refresh-webpack-plugin": "^0.5.10",
 		"@react-flight/babel-plugin": "workspace:*",
 		"@react-flight/webpack-plugin": "workspace:*",
 		"babel-loader": "^9.1.2",
 		"concurrently": "^8.0.1",
+		"react-refresh": "^0.14.0",
 		"webpack": "^5.82.1",
 		"webpack-cli": "^5.1.1",
-		"webpack-dev-server": "^4.15.0"
+		"webpack-dev-middleware": "^6.1.1",
+		"webpack-dev-server": "^4.15.0",
+		"webpack-hot-middleware": "^2.25.4"
 	},
 	"dependencies": {
 		"body-parser": "^1.20.2",
