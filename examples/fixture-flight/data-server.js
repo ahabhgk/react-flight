@@ -11,7 +11,7 @@ async function main() {
 	app.use(compress());
 
 	async function renderApp(returnValue) {
-		const { default: App, ReactServerDOMWebpackServer, React } = shared.serverEntry();
+		const { App, ReactServerDOMWebpackServer, React } = shared.serverEntry();
 
 		const root = React.createElement(App);
 		// For client-invoked server actions we refresh the tree and return a return value.

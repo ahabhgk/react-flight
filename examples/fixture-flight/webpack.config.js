@@ -67,26 +67,26 @@ module.exports = [
 						conditionNames: ["react-server", "..."],
 					},
 				},
+				{
+					test: path.resolve(__dirname, "src/ssr-export.js"),
+					layer: "client",
+				},
 			],
 		},
 		plugins: [
 			new ReactFlightServerWebpackPlugin(),
-			function HotReloadRequireCache(compiler) {
-				compiler.hooks.afterEmit.tap(HotReloadRequireCache.name, (compilation) => {
-					for (const emitted of compilation.emittedAssets) {
-						const emittedPath = path.resolve(compiler.outputPath, emitted);
-						if (Object.hasOwn(require.cache, emittedPath)) {
-							delete require.cache[emittedPath];
+			isDevelopment &&
+				function HotReloadRequireCachePlugin(compiler) {
+					compiler.hooks.afterEmit.tap(HotReloadRequireCachePlugin.name, (compilation) => {
+						for (const emitted of compilation.emittedAssets) {
+							const emittedPath = path.resolve(compiler.outputPath, emitted);
+							if (require.cache[emittedPath]) {
+								delete require.cache[emittedPath];
+							}
 						}
-					}
-				});
-			},
-		],
-		externals: {
-			react: "node-commonjs react",
-			"react-dom": "node-commonjs react-dom",
-			"react-dom/server": "node-commonjs react-dom/server",
-		},
+					});
+				},
+		].filter(Boolean),
 		experiments: {
 			layers: true,
 		},

@@ -4,9 +4,9 @@ const express = require("express");
 
 const outputPath = path.resolve(__dirname, "dist");
 const serverEntryPath = path.join(outputPath, "server/server-entry.js");
-const clientModulesSSRManifestPath = path.resolve(outputPath, "client/client-modules-ssr.json");
+const clientModulesSSRManifestPath = path.resolve(outputPath, "client/client-components-ssr.json");
 const entryManifestPath = path.resolve(outputPath, "client/entry-manifest.json");
-const clientModulesManifestPath = path.resolve(outputPath, `client/client-modules.json`);
+const clientModulesManifestPath = path.resolve(outputPath, `client/client-components.json`);
 const serverActionsManifestPath = path.resolve(outputPath, `server/server-actions.json`);
 
 const getManifest = (manifestPath) => fs.promises.readFile(manifestPath, "utf-8").then(JSON.parse);
