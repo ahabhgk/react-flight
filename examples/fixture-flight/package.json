@@ -23,7 +23,6 @@
 		"@react-flight/webpack-plugin": "workspace:*",
 		"babel-loader": "^9.1.2",
 		"concurrently": "^8.0.1",
-		"nodemon": "^2.0.22",
 		"react-refresh": "^0.14.0",
 		"webpack": "^5.82.1",
 		"webpack-cli": "^5.1.1",

@@ -12,22 +12,22 @@ module.exports = function flightLoader(source) {
 	if (directive === "client" && layer === "server") {
 		let count = 0;
 		let newSource = `
-	import { createClientReference } from "${require.resolve("./runtime/server.js")}";
-	const clientReference = createClientReference(String.raw\`${this.resourcePath}\`);
+import { createClientReference } from "${require.resolve("./runtime/server.js")}";
+const clientReference = createClientReference(String.raw\`${this.resourcePath}\`);
 
-	const { __esModule, $$typeof } = clientReference;
-	const __default__ = clientReference.default;
+const { __esModule, $$typeof } = clientReference;
+const __default__ = clientReference.default;
 	`;
 		for (const exportName of exportNames) {
 			if (exportName === "default") {
 				newSource += `
-	export { __esModule, $$typeof };
-	export default __default__;
+export { __esModule, $$typeof };
+export default __default__;
 	`;
 			} else {
 				newSource += `
-	const e${count} = clientReference["${exportName}"];
-	export { e${count++} as ${exportName} };
+const e${count} = clientReference["${exportName}"];
+export { e${count++} as ${exportName} };
 	`;
 			}
 		}
