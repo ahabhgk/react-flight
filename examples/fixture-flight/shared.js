@@ -14,17 +14,25 @@ const getManifest = (manifestPath) => fs.promises.readFile(manifestPath, "utf-8"
 module.exports = (async function create() {
 	if (process.env.NODE_ENV === "development") {
 		const webpack = require("webpack");
-		const devMiddleware = require("webpack-dev-middleware");
-		const hotMiddleware = require("webpack-hot-middleware");
+		const createDevMiddleware = require("webpack-dev-middleware");
+		const createHotMiddleware = require("webpack-hot-middleware");
+		const { ServerComponentInvalidatedWebpackPlugin } = require("@react-flight/webpack-plugin");
 		const config = require("./webpack.config");
 		const compiler = webpack(config);
-		const csrCompiler = compiler.compilers.find((compiler) => compiler.name === "csr");
-		const devMiddlewareInstance = devMiddleware(compiler, {
+		const clientCompiler = compiler.compilers.find((compiler) => compiler.name === "csr");
+		const serverCompiler = compiler.compilers.find((compiler) => compiler.name === "ssr");
+		const devMiddleware = createDevMiddleware(compiler, {
 			writeToDisk: true,
 			serverSideRender: true,
 		});
+		const hotMiddleware = createHotMiddleware(clientCompiler);
+		new ServerComponentInvalidatedWebpackPlugin((changed) => {
+			if (changed) {
+				hotMiddleware.publish({ action: "sc-refresh" });
+			}
+		}).apply(serverCompiler);
 		return {
-			middlewares: [devMiddlewareInstance, hotMiddleware(csrCompiler)],
+			middlewares: [devMiddleware, hotMiddleware],
 			getClientModulesSSRManifest: () => getManifest(clientModulesSSRManifestPath),
 			getEntryManifest: () => getManifest(entryManifestPath),
 			getClientModulesManifest: () => getManifest(clientModulesManifestPath),
