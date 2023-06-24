@@ -1,5 +1,11 @@
 # @react-flight/webpack-plugin
 
+## 0.0.6
+
+### Patch Changes
+
+- 8132571: Support client component HMR
+
 ## 0.0.5
 
 ### Patch Changes
