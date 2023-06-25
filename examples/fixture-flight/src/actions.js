@@ -25,3 +25,7 @@ export async function greet(formData) {
 	}
 	return "Hi " + name + "!";
 }
+
+export async function count() {
+	console.log("Counting...");
+}

@@ -1,14 +1,18 @@
 "use client";
 
-import * as React from "react";
-
+import { useState } from "react";
 import Container from "./Container.js";
+import * as actions from "./actions.js";
 
 export function Counter() {
-	const [count, setCount] = React.useState(0);
+	const [count, setCount] = useState(0);
+	const onClick = () => {
+		setCount((c) => c + 1);
+		actions.count();
+	};
 	return (
 		<Container>
-			<button onClick={() => setCount((c) => c + 1)}>Count: {count}</button>
+			<button onClick={onClick}>Count: {count}</button>
 		</Container>
 	);
 }

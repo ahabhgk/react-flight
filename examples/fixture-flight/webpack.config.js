@@ -28,7 +28,7 @@ const jsRule = (isClient) => ({
 		{
 			loader: "babel-loader",
 			options: {
-				presets: [["@babel/preset-react", { development: isDevelopment }]],
+				presets: [["@babel/preset-react", { development: isDevelopment, runtime: "automatic" }]],
 				plugins: [
 					isDevelopment && isClient && "react-refresh/babel",
 					reactFlightBabelPlugin,

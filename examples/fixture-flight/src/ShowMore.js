@@ -1,11 +1,10 @@
 "use client";
 
-import * as React from "react";
-
+import { useState } from "react";
 import Container from "./Container.js";
 
 export default function ShowMore({ children }) {
-	const [show, setShow] = React.useState(false);
+	const [show, setShow] = useState(false);
 	if (!show) {
 		return <button onClick={() => setShow(true)}>Show More</button>;
 	}

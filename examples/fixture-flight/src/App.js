@@ -1,16 +1,9 @@
-import * as React from "react";
-
 import Container from "./Container.js";
-
 import { Counter } from "./Counter.js";
-
 import ShowMore from "./ShowMore.js";
-import LikeButton from "./LikeButton.js";
-import DislikeButton from "./DislikeButton.js";
+import Button from "./Button.js";
 import Form from "./Form.js";
-
-import { like, greet } from "./actions.js";
-
+import { like, greet, dislike } from "./actions.js";
 import { getServerState } from "./ServerState.js";
 
 export default async function App() {
@@ -37,8 +30,8 @@ export default async function App() {
 					</ShowMore>
 					<Form action={greet} />
 					<div>
-						<LikeButton action={like}>Like</LikeButton>
-						<DislikeButton>Dislike</DislikeButton>
+						<Button action={like}>Like</Button>
+						<Button action={dislike}>DisLike</Button>
 					</div>
 				</Container>
 			</body>

@@ -1,8 +1,8 @@
 "use client";
 
-import * as React from "react";
+import { Component } from "react";
 
-export default class ErrorBoundary extends React.Component {
+export default class ErrorBoundary extends Component {
 	state = { error: null };
 	static getDerivedStateFromError(error) {
 		return { error };
