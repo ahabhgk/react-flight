@@ -23,11 +23,14 @@
 		"@react-flight/webpack-plugin": "workspace:*",
 		"babel-loader": "^9.1.2",
 		"concurrently": "^8.0.1",
+		"css-loader": "^6.8.1",
+		"mini-css-extract-plugin": "^2.7.6",
 		"react-refresh": "^0.14.0",
-		"webpack": "^5.82.1",
-		"webpack-cli": "^5.1.1",
+		"style-loader": "^3.3.3",
+		"webpack": "^5.88.1",
+		"webpack-cli": "^5.1.4",
 		"webpack-dev-middleware": "^6.1.1",
-		"webpack-dev-server": "^4.15.0",
+		"webpack-dev-server": "^4.15.1",
 		"webpack-hot-middleware": "^2.25.4"
 	},
 	"dependencies": {

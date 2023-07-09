@@ -13,7 +13,9 @@ async function main() {
 	async function renderApp(returnValue) {
 		const { App, ReactServerDOMWebpackServer, React } = shared.serverEntry();
 
-		const root = React.createElement(App);
+		const root = React.createElement(App, {
+			cssPaths: (await shared.getEntryManifest())["client-entry"].css,
+		});
 		// For client-invoked server actions we refresh the tree and return a return value.
 		const payload = returnValue ? { returnValue, root } : root;
 		return ReactServerDOMWebpackServer.renderToPipeableStream(

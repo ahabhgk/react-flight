@@ -1,7 +1,11 @@
+const { getFlightInfo } = require("./utils");
+
 /** shared state for server plugin and client plugin */
 const state = {
 	// "use client" client boundary
 	clientComponents: new Map(),
+	// styles imported by server components, implicit "use client"
+	styles: new Set(),
 	serverActions: new Set(),
 };
 
@@ -40,11 +44,8 @@ class ServerComponentInvalidatedWebpackPlugin {
 	static collectModuleHashes(compilation) {
 		const map = new Map();
 		for (const module of compilation.modules) {
-			if (
-				module.layer === "server" &&
-				module.buildInfo?.directive === "none" &&
-				module.buildInfo.hash
-			) {
+			const directive = getFlightInfo(module, "directive");
+			if (module.layer === "server" && directive === "none" && module.buildInfo.hash) {
 				map.set(module.identifier(), module.buildInfo.hash);
 			}
 		}
@@ -66,6 +67,7 @@ class ReactFlightServerWebpackPlugin {
 
 		compiler.hooks.beforeCompile.tap(ReactFlightServerWebpackPlugin.name, () => {
 			state.clientComponents.clear();
+			state.styles.clear();
 			state.serverActions.clear();
 		});
 
@@ -110,12 +112,13 @@ class ReactFlightServerWebpackPlugin {
 
 				const collectResources = (directive, collect) => {
 					for (const module of compilation.modules) {
-						if (directive === module.buildInfo?.directive) {
+						if (directive === getFlightInfo(module, "directive")) {
 							collect(module.resource);
 						}
 					}
 				};
 
+				collectResources("css", (resource) => state.styles.add(resource));
 				collectResources("client", (resource) => state.clientComponents.set(resource, {}));
 				await addEntry([...state.clientComponents.keys()], this.clientLayer);
 				collectResources("server", (resource) => state.serverActions.add(resource));
@@ -198,6 +201,7 @@ class ReactFlightServerWebpackPlugin {
 class ReactFlightClientWebpackPlugin {
 	constructor(options) {
 		this.clientComponents = options?.clientComponents ?? state.clientComponents;
+		this.styles = options?.styles ?? state.styles;
 
 		if (typeof options?.chunkName === "string") {
 			this.chunkName = options.chunkName;
@@ -219,14 +223,38 @@ class ReactFlightClientWebpackPlugin {
 		const { webpack } = compiler;
 
 		class ClientReferenceDependency extends webpack.dependencies.ModuleDependency {
-			constructor(request) {
+			constructor(request, css) {
 				super(request);
+				this.css = css;
 			}
 
 			get type() {
 				return "client-reference";
 			}
 		}
+
+		ClientReferenceDependency.Template = class ClientReferenceDependencyTemplate extends (
+			webpack.dependencies.NullDependency.Template
+		) {
+			apply(
+				dep,
+				source,
+				{ runtimeTemplate, runtimeRequirements, module, moduleGraph, chunkGraph }
+			) {
+				if (dep.css) {
+					const importStatement = runtimeTemplate.importStatement({
+						update: false,
+						module: moduleGraph.getModule(dep),
+						chunkGraph,
+						importVar: webpack.Template.toIdentifier(dep.userRequest),
+						request: dep.request,
+						originModule: module,
+						runtimeRequirements,
+					});
+					source.insert(Infinity, importStatement[0] + importStatement[1]);
+				}
+			}
+		};
 
 		const clientImportName = "react-server-dom-webpack/client.browser";
 		const clientFileName = require.resolve(clientImportName);
@@ -239,7 +267,7 @@ class ReactFlightClientWebpackPlugin {
 				compilation.dependencyFactories.set(ClientReferenceDependency, normalModuleFactory);
 				compilation.dependencyTemplates.set(
 					ClientReferenceDependency,
-					new webpack.dependencies.NullDependency.Template()
+					new ClientReferenceDependency.Template()
 				);
 
 				const handler = (parser) => {
@@ -271,6 +299,12 @@ class ReactFlightClientWebpackPlugin {
 								);
 								block.addDependency(dep);
 								module.addBlock(block);
+							}
+						}
+						if (this.styles) {
+							for (const resource of this.styles) {
+								const dep = new ClientReferenceDependency(resource, true);
+								module.addDependency(dep);
 							}
 						}
 					});
@@ -398,7 +432,8 @@ class ReactFlightClientWebpackPlugin {
 	}
 }
 
-module.exports.ReactFlightServerWebpackPlugin = ReactFlightServerWebpackPlugin;
-module.exports.ReactFlightClientWebpackPlugin = ReactFlightClientWebpackPlugin;
-module.exports.ServerComponentInvalidatedWebpackPlugin = ServerComponentInvalidatedWebpackPlugin;
-module.exports.loader = require.resolve("./flight-loader");
+exports.ReactFlightServerWebpackPlugin = ReactFlightServerWebpackPlugin;
+exports.ReactFlightClientWebpackPlugin = ReactFlightClientWebpackPlugin;
+exports.ServerComponentInvalidatedWebpackPlugin = ServerComponentInvalidatedWebpackPlugin;
+exports.flightLoader = require.resolve("./flight-loader");
+exports.flightCSSLoader = require.resolve("./flight-css-loader");

@@ -8,7 +8,8 @@
 - [x] Progressive Enhancement
 - [x] HMR for Client Components
 - [x] Hot Reload for Server Components
+- [x] CSS
+- [ ] Opt-in SSR
 - [ ] Rewrite in TS
 - [ ] Router
-- [ ] CSS
 - [ ] Ejectable minimal framework

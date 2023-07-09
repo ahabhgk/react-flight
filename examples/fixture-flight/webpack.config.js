@@ -3,17 +3,19 @@ const webpack = require("webpack");
 const {
 	ReactFlightServerWebpackPlugin,
 	ReactFlightClientWebpackPlugin,
-	loader: flightLoader,
+	flightLoader,
+	flightCSSLoader,
 } = require("@react-flight/webpack-plugin");
 const { default: reactFlightBabelPlugin } = require("@react-flight/babel-plugin");
 const ReactRefreshWebpackPlugin = require("@pmmmwh/react-refresh-webpack-plugin");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 const isDevelopment = process.env.NODE_ENV === "development";
 const isProduction = process.env.NODE_ENV === "production";
 const mode = isProduction ? "production" : "development";
 
 const jsRule = (isClient) => ({
-	test: /\.jsx?$/,
+	test: /\.jsx?$/i,
 	exclude: /node_modules/,
 	use: [
 		{
@@ -52,6 +54,7 @@ module.exports = [
 			},
 		},
 		output: {
+			clean: true,
 			path: path.join(__dirname, "dist", "server"),
 		},
 		mode,
@@ -70,6 +73,26 @@ module.exports = [
 				{
 					test: path.resolve(__dirname, "src/ssr-export.js"),
 					layer: "client",
+				},
+				{
+					test: /\.css$/i,
+					oneOf: [
+						{
+							test: /\.module\.css$/i,
+							use: [
+								{ loader: flightCSSLoader, options: { modules: true } },
+								"style-loader",
+								{ loader: "css-loader", options: { modules: true } },
+							],
+						},
+						{
+							use: [
+								{ loader: flightCSSLoader, options: { modules: false } },
+								"style-loader",
+								{ loader: "css-loader", options: { modules: false } },
+							],
+						},
+					],
 				},
 			],
 		},
@@ -100,6 +123,7 @@ module.exports = [
 			),
 		},
 		output: {
+			clean: true,
 			filename: "[name]-[contenthash].js",
 			path: path.join(__dirname, "dist", "client"),
 		},
@@ -107,10 +131,31 @@ module.exports = [
 		target: "web",
 		devtool: false,
 		module: {
-			rules: [jsRule(true)],
+			rules: [
+				jsRule(true),
+				{
+					test: /\.css$/i,
+					oneOf: [
+						{
+							test: /\.module\.css$/i,
+							use: [
+								isProduction ? MiniCssExtractPlugin.loader : "style-loader",
+								{ loader: "css-loader", options: { modules: true } },
+							],
+						},
+						{
+							use: [
+								isProduction ? MiniCssExtractPlugin.loader : "style-loader",
+								{ loader: "css-loader", options: { modules: false } },
+							],
+						},
+					],
+				},
+			],
 		},
 		plugins: [
 			new ReactFlightClientWebpackPlugin(),
+			isProduction && new MiniCssExtractPlugin({ filename: "[name]-[contenthash].css" }),
 			isDevelopment &&
 				new ReactRefreshWebpackPlugin({
 					overlay: {
