@@ -1,3 +1,5 @@
+const { setFlightInfo } = require("./utils");
+
 const INTERNAL_COMMENT_REGEX = /\/\*@react-flight\/internal:(.*)\|(.*)\*\//;
 
 module.exports = function flightLoader(source) {
@@ -6,7 +8,7 @@ module.exports = function flightLoader(source) {
 	const exportNames = matched[2].split(",");
 	const layer = this._module.layer;
 
-	this._module.buildInfo.directive = directive;
+	setFlightInfo(this._module, "directive", directive);
 
 	// client components
 	if (directive === "client" && layer === "server") {

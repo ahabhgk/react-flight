@@ -23,6 +23,6 @@
     "react": "0.0.0-experimental-a389046a5-20230512",
     "react-dom": "0.0.0-experimental-a389046a5-20230512",
     "react-server-dom-webpack": "0.0.0-experimental-a389046a5-20230512",
-    "webpack": "^5.82.1"
+    "webpack": "^5.88.1"
   }
 }

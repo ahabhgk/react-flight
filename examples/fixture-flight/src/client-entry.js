@@ -2,9 +2,6 @@ import { use, useState, startTransition } from "react";
 import ReactDOM from "react-dom/client";
 import { createFromFetch, encodeReply } from "react-server-dom-webpack/client";
 
-// TODO: This should be a dependency of the App but we haven't implemented CSS in Node yet.
-// import './style.css';
-
 let updateRoot;
 
 export async function callServer(id, args) {
