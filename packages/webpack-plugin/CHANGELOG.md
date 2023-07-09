@@ -1,5 +1,11 @@
 # @react-flight/webpack-plugin
 
+## 0.0.8
+
+### Patch Changes
+
+- 91efd8c: Support CSS
+
 ## 0.0.7
 
 ### Patch Changes
