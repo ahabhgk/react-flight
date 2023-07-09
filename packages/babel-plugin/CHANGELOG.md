@@ -1,5 +1,7 @@
 # @react-flight/babel-plugin
 
+## 0.0.8
+
 ## 0.0.7
 
 ## 0.0.6
