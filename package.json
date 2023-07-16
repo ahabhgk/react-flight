@@ -12,7 +12,7 @@
     "url": "https://github.com/ahabhgk/react-flight"
   },
   "scripts": {
-    "fmt": "prettier --write {packages,examples}/**/*.js",
+    "fmt": "prettier --write {packages,examples}/**/*",
     "prepare": "husky install",
     "changeset": "changeset",
     "version-packages": "changeset version",
