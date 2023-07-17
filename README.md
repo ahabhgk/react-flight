@@ -9,7 +9,7 @@
 - [x] HMR for Client Components
 - [x] Hot Reload for Server Components
 - [x] CSS
-- [ ] Opt-in SSR
+- [ ] Static Generation
 - [ ] Rewrite in TS
 - [ ] Router
 - [ ] Ejectable minimal framework

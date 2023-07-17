@@ -1,18 +1,14 @@
 {
-	"name": "example-fixture-flight",
+	"name": "example-no-ssr",
 	"private": true,
 	"description": "",
 	"keywords": [],
 	"author": "ahabhgk <ahabhgk@gmail.com> (https://github.com/ahabhgk)",
 	"license": "MIT",
 	"scripts": {
-		"dev": "concurrently \"pnpm dev:data\" \"pnpm dev:ssr\"",
-		"dev:ssr": "NODE_ENV=development node ./ssr-server.js",
-		"dev:data": "NODE_ENV=development node --conditions=react-server ./data-server.js",
+		"dev": "NODE_ENV=development node ./server.js",
 		"build": "NODE_ENV=production webpack",
-		"start": "concurrently \"pnpm start:data\" \"pnpm start:ssr\"",
-		"start:ssr": "NODE_ENV=production node ./ssr-server.js",
-		"start:data": "NODE_ENV=production node --conditions=react-server ./data-server.js"
+		"start": "NODE_ENV=production node ./server.js"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.21.4",
@@ -21,8 +17,8 @@
 		"@react-flight/babel-plugin": "workspace:*",
 		"@react-flight/webpack-plugin": "workspace:*",
 		"babel-loader": "^9.1.2",
-		"concurrently": "^8.0.1",
 		"css-loader": "^6.8.1",
+		"html-webpack-plugin": "^5.5.3",
 		"mini-css-extract-plugin": "^2.7.6",
 		"react-refresh": "^0.14.0",
 		"style-loader": "^3.3.3",
