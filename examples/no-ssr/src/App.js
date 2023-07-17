@@ -1,17 +1,7 @@
 import AddTodo from "./AddTodo";
-import { finishTodo } from "./actions";
+import FinishTodo from "./FinishTodo";
 import { getTodos } from "./todos";
-
-function FinishTodoButton({ todo }) {
-	return (
-		<form>
-			<input type="hidden" name="finishedTodoId" value={todo.id} />
-			<button type="submit" formAction={finishTodo}>
-				Done
-			</button>
-		</form>
-	);
-}
+import "./global.css";
 
 export default async function App() {
 	const todos = await getTodos();
@@ -20,8 +10,8 @@ export default async function App() {
 			<ul>
 				{todos.map((todo) => (
 					<li key={todo.id}>
-						<span>{todo.text}</span>
-						<FinishTodoButton todo={todo} />
+						<span className="todo-text">{todo.text}</span>
+						<FinishTodo todo={todo} />
 					</li>
 				))}
 			</ul>

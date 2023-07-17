@@ -1,0 +1,9 @@
+.todo-text {
+	display: inline-block;
+	width: 80px;
+	margin-right: 20px;
+}
+
+.todo-done-form {
+	display: inline;
+}
